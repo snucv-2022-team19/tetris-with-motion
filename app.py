@@ -15,7 +15,7 @@ mp_drawing_styles = mp.solutions.drawing_styles
 mp_hands = mp.solutions.hands
 
 ######## Parameters ########
-OUTPUT_HIST_LEN = 5
+OUTPUT_HIST_LEN = 3
 OUTPUT_THRESHOLD = 0.98
 LABEL_HIST_LEN = 10
 ############################
@@ -82,10 +82,16 @@ class HandMotionDetector:
                 history_data[0, i // 2, k::2] = temp[0, :, i]
             return history_data  # 16 X 42 normalized coordinates
 
+    def preprocess_before_model(self, data):
+        tdata = data.copy()
+        for i in range(15, 0, -1):
+            tdata[0, i, :] -= tdata[0, i - 1, :]
+        return tdata
+
     def setup(self):
         self.cap = cv2.VideoCapture(0)
         self.history = [deque(maxlen=16) for _ in range(21)]
-        self.model = tf.keras.models.load_model("./model/motionmodel_total.h5")
+        self.model = tf.keras.models.load_model("./model/relativemodel.h5")
         self.output_list = deque(maxlen=OUTPUT_HIST_LEN)
         self.hands = mp_hands.Hands(
             model_complexity=0,
@@ -136,7 +142,8 @@ class HandMotionDetector:
                 data = self.preprocess_point_history(image)
 
                 if data is not None:
-                    res = self.model.predict(data)[0]
+                    tdata = self.preprocess_before_model(data)
+                    res = self.model.predict(tdata)[0]
                     output = np.argmax(res)  # model output
                     if res[output] < OUTPUT_THRESHOLD:
                         self.output_list.append(Label.IDLE)
