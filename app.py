@@ -91,7 +91,7 @@ class HandMotionDetector:
     def setup(self):
         self.cap = cv2.VideoCapture(0)
         self.history = [deque(maxlen=16) for _ in range(21)]
-        self.model = tf.keras.models.load_model("./model/relativemodel.h5")
+        self.model = tf.keras.models.load_model("./model/relativemodel_idle.h5")
         self.output_list = deque(maxlen=OUTPUT_HIST_LEN)
         self.hands = mp_hands.Hands(
             model_complexity=0,
