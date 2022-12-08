@@ -1,6 +1,7 @@
 from collections import Counter, deque
 from enum import Enum
 from multiprocessing import Manager, Process
+from multiprocessing.managers import ListProxy
 
 import cv2
 import mediapipe as mp
@@ -188,7 +189,7 @@ class HandMotionTetris(Tetris):
     Tetris that uses HandMotionDetector
     """
 
-    def event_from_label(self, label_history):
+    def event_from_label(self, label_history: ListProxy):
         """
         Fire an event that controls the game.
         Currently implemented in naive approach, firing an event only if the label is different from the previous.
@@ -203,6 +204,18 @@ class HandMotionTetris(Tetris):
         self.prev_label = label
         event = pygame.event.Event(pygame.USEREVENT + label.value)
         pygame.event.post(event)
+
+        # if len(label_history) == 0:
+        #     return
+
+        # event = pygame.event.Event(pygame.USEREVENT + Label.IDLE.value)
+        # label = label_history[-1]
+        # if len(label_history) == 1 or label_history[-2] != label:
+        #     event = pygame.event.Event(pygame.USEREVENT + label.value)
+        # elif list(label_history).count(label) == LABEL_HIST_LEN:
+        #     label_history[-1] = Label.IDLE
+
+        # pygame.event.post(event)
 
     def handle_event(self, event):
         if event.type == pygame.QUIT:
